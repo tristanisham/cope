@@ -10,4 +10,5 @@ const (
 	FontSize = 24
 	SmallFontSize = FontSize / 2
 	Padding = 20
+	MovementSpeed = 4
 )

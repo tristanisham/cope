@@ -13,7 +13,7 @@ import (
 
 type Game struct {
 	showRays bool
-	px, py   int
+	px, py   float64
 	objects  []object
 }
 
@@ -81,6 +81,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, "WASD: move", 160, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()), 51, 51)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Rays: 2*%d", len(rays)/2), meta.Padding, 222)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Pos: (%0.0f,%0.0f)", g.px, g.py), meta.Padding, 233)
+
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
