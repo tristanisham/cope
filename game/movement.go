@@ -63,20 +63,6 @@ func (g *Game) handleMovement() {
 }
 
 func isColliding(x, y float64, objects []object) bool {
-	// // Define a small padding for collision detection
-	// const playerSize = 2.5 // Adjust based on your player size
-
-	// // Define the player's bounding box
-	// playerBox := line{x - playerSize, y - playerSize, x + playerSize, y + playerSize}
-
-	// for _, obj := range objects {
-	// 	for _, wall := range obj.walls {
-	// 		// Check if the player's bounding box intersects with any wall
-	// 		if _, _, collides := intersection(playerBox, wall); collides {
-	// 			return true
-	// 		}
-	// 	}
-	// }
 
 	const playerHalfSize = 2.1 // Half the size of the player, adjust based on your player size
 

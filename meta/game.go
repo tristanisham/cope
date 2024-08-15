@@ -11,4 +11,10 @@ const (
 	SmallFontSize = FontSize / 2
 	Padding       = 20
 	MovementSpeed = 4
+
+	// Experimental camera consts
+	TileXCount  = 25
+	WorldWidth  = ScreenWidth / 4
+	WorldHeight = ScreenWidth / 4
+	WorldSizeX  = WorldWidth / TileSize
 )
