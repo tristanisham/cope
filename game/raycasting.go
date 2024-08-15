@@ -11,11 +11,11 @@ type line struct {
 	x1, y1, x2, y2 float64
 }
 
-func (l line) angle() float64 {
+func (l line) Angle() float64 {
 	return math.Atan2(l.y2-l.y1, l.x2-l.x1)
 }
 
-func (l line) dist() float64 {
+func (l line) Dist() float64 {
 	return math.Sqrt(math.Pow(l.x2-l.x1, 2) + (math.Pow(l.y2-l.y1, 2)))
 }
 
@@ -81,7 +81,7 @@ func rayCasting(cx, cy float64, objects []object) []line {
 		// Cast two rays per point
 		for _, p := range obj.points() {
 			l := line{cx, cy, p[0], p[1]}
-			angle := l.angle()
+			angle := l.Angle()
 
 			for _, offset := range []float64{-0.005, 0.005} {
 				points := [][2]float64{}
@@ -113,7 +113,7 @@ func rayCasting(cx, cy float64, objects []object) []line {
 
 	// Sort rays based on angle, otherwise light triangles will not come out right
 	sort.Slice(rays, func(i int, j int) bool {
-		return rays[i].angle() < rays[j].angle()
+		return rays[i].Angle() < rays[j].Angle()
 	})
 	return rays
 }
