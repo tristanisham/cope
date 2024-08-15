@@ -1,6 +1,7 @@
 package game
 
 import (
+	"embed"
 	"fmt"
 	"image/color"
 
@@ -15,6 +16,9 @@ type Game struct {
 	showRays bool
 	px, py   float64
 	objects  []object
+	assets embed.FS
+	lc int // level cursor
+	levels []level
 }
 
 func (g *Game) Update() error {
@@ -89,11 +93,14 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return meta.ScreenWidth, meta.ScreenHeight
 }
 
-func NewGame() *Game {
+func NewGame(assets embed.FS) *Game {
 	g := &Game{
 		px: meta.ScreenWidth / 2,
 		py: meta.ScreenHeight / 2,
+		assets: assets,
 	}
+
+	g.loadLevels()
 
 	// Add outer walls
 	g.objects = append(g.objects, object{rect(meta.Padding, meta.Padding, meta.ScreenWidth-2*meta.Padding, meta.ScreenHeight-2*meta.Padding)})

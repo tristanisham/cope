@@ -13,8 +13,8 @@ import (
 var Assets embed.FS
 
 func main() {
-	g := game.NewGame()
-	
+	g := game.NewGame(Assets)
+
 	ebiten.SetWindowSize(meta.ScreenWidth*2, meta.ScreenHeight*2)
 	ebiten.SetWindowTitle("Cope")
 	if err := ebiten.RunGame(g); err != nil {
