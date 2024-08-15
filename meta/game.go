@@ -3,12 +3,12 @@
 package meta
 
 const (
-	ScreenWidth = 640
-	ScreenHeight = 480
-	TileSize = 23
+	ScreenWidth   = 640
+	ScreenHeight  = 480
+	TileSize      = 23
 	TitleFontSize = FontSize * 1.5
-	FontSize = 24
+	FontSize      = 24
 	SmallFontSize = FontSize / 2
-	Padding = 20
+	Padding       = 20
 	MovementSpeed = 4
 )
