@@ -42,7 +42,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		nextLine := rays[(i+1)%len(rays)]
 
 		// Draw triangle of area between rays
-		v := rayVertices(float64(g.px), float64(g.py), nextLine.X2, nextLine.Y2, line.X2, line.Y2)
+		v := rayVertices(float64(g.px), float64(g.py), nextLine.x2, nextLine.y2, line.x2, line.y2)
 		shadowImage.DrawTriangles(v, []uint16{0, 1, 2}, triangleImage, opt)
 	}
 
@@ -52,7 +52,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if g.showRays {
 		// Draw rays
 		for _, r := range rays {
-			vector.StrokeLine(screen, float32(r.X1), float32(r.Y1), float32(r.X2), float32(r.Y2), 1, color.RGBA{255, 255, 0, 150}, true)
+			vector.StrokeLine(screen, float32(r.x1), float32(r.y1), float32(r.x2), float32(r.y2), 1, color.RGBA{255, 255, 0, 150}, true)
 		}
 	}
 
@@ -64,7 +64,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Draw walls
 	for _, obj := range g.objects {
 		for _, w := range obj.walls {
-			vector.StrokeLine(screen, float32(w.X1), float32(w.Y1), float32(w.X2), float32(w.Y2), 1, color.RGBA{255, 0, 0, 255}, true)
+			vector.StrokeLine(screen, float32(w.x1), float32(w.y1), float32(w.x2), float32(w.y2), 1, color.RGBA{255, 0, 0, 255}, true)
 		}
 	}
 

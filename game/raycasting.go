@@ -3,16 +3,20 @@ package game
 import (
 	"math"
 	"sort"
-	"github.com/hajimehoshi/ebiten/v2"
 
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type line struct {
-	X1, Y1, X2, Y2 float64
+	x1, y1, x2, y2 float64
 }
 
-func (l *line) angle() float64 {
-	return math.Atan2(l.Y2-l.Y1, l.X2-l.X1)
+func (l line) angle() float64 {
+	return math.Atan2(l.y2-l.y1, l.x2-l.x1)
+}
+
+func (l line) dist() float64 {
+	return math.Sqrt(math.Pow(l.x2-l.x1, 2) + (math.Pow(l.y2-l.y1, 2)))
 }
 
 type object struct {
@@ -24,30 +28,30 @@ func (o object) points() [][2]float64 {
 	// + the startpoint of the first one, for non-closed paths
 	var points [][2]float64
 	for _, wall := range o.walls {
-		points = append(points, [2]float64{wall.X2, wall.Y2})
+		points = append(points, [2]float64{wall.x2, wall.y2})
 	}
-	p := [2]float64{o.walls[0].X1, o.walls[0].Y1}
+	p := [2]float64{o.walls[0].x1, o.walls[0].y1}
 	if p[0] != points[len(points)-1][0] && p[1] != points[len(points)-1][1] {
-		points = append(points, [2]float64{o.walls[0].X1, o.walls[0].Y1})
+		points = append(points, [2]float64{o.walls[0].x1, o.walls[0].y1})
 	}
 	return points
 }
 
 func newRay(x, y, length, angle float64) line {
 	return line{
-		X1: x,
-		Y1: y,
-		X2: x + length*math.Cos(angle),
-		Y2: y + length*math.Sin(angle),
+		x1: x,
+		y1: y,
+		x2: x + length*math.Cos(angle),
+		y2: y + length*math.Sin(angle),
 	}
 }
 
 // intersection calculates the intersection of given two lines.
 func intersection(l1, l2 line) (float64, float64, bool) {
 	// https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line
-	denom := (l1.X1-l1.X2)*(l2.Y1-l2.Y2) - (l1.Y1-l1.Y2)*(l2.X1-l2.X2)
-	tNum := (l1.X1-l2.X1)*(l2.Y1-l2.Y2) - (l1.Y1-l2.Y1)*(l2.X1-l2.X2)
-	uNum := -((l1.X1-l1.X2)*(l1.Y1-l2.Y1) - (l1.Y1-l1.Y2)*(l1.X1-l2.X1))
+	denom := (l1.x1-l1.x2)*(l2.y1-l2.y2) - (l1.y1-l1.y2)*(l2.x1-l2.x2)
+	tNum := (l1.x1-l2.x1)*(l2.y1-l2.y2) - (l1.y1-l2.y1)*(l2.x1-l2.x2)
+	uNum := -((l1.x1-l1.x2)*(l1.y1-l2.y1) - (l1.y1-l1.y2)*(l1.x1-l2.x1))
 
 	if denom == 0 {
 		return 0, 0, false
@@ -63,8 +67,8 @@ func intersection(l1, l2 line) (float64, float64, bool) {
 		return 0, 0, false
 	}
 
-	x := l1.X1 + t*(l1.X2-l1.X1)
-	y := l1.Y1 + t*(l1.Y2-l1.Y1)
+	x := l1.x1 + t*(l1.x2-l1.x1)
+	y := l1.y1 + t*(l1.y2-l1.y1)
 	return x, y, true
 }
 

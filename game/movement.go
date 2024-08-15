@@ -39,6 +39,10 @@ func (g *Game) handleMovement() {
 		g.py = meta.Padding + 1
 	}
 
+	rays := rayCasting(float64(g.px), float64(g.py), g.objects)
+	for _, r := range rays {
+		r.
+	}
 	// add collision for walls
 	
 }
