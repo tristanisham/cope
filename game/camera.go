@@ -44,9 +44,19 @@ func (c *Camera) worldMatrix() ebiten.GeoM {
 }
 
 func (c *Camera) Render(world, screen *ebiten.Image) {
-	screen.DrawImage(world, &ebiten.DrawImageOptions{
-		GeoM: c.worldMatrix(),
-	})
+
+	// Create a GeoM to apply the camera's position and other transformations
+	op := &ebiten.DrawImageOptions{}
+
+	// Apply translation to center the camera on the player
+	op.GeoM.Translate(-c.Position[0], -c.Position[1])
+
+	// Draw the transformed world image onto the screen
+	screen.DrawImage(world, op)
+
+	// screen.DrawImage(world, &ebiten.DrawImageOptions{
+	// 	GeoM: c.worldMatrix(),
+	// })
 }
 
 func (c *Camera) ScreenToWorld(posX, posY int) (float64, float64) {

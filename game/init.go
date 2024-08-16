@@ -38,15 +38,19 @@ func (g *Game) Update() error {
 	// Update the camera position to follow the player
 	g.camera.Position[0] = g.px - g.camera.ViewPort[0]/2
 	g.camera.Position[1] = g.py - g.camera.ViewPort[1]/2
-	
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	g.world.Clear()
+	shadowImage.Fill(color.Black)
+	// Draw background
+	screen.DrawImage(bgImage, nil)
+
 	// potential good link for writing tiles
 	// https://github.com/hajimehoshi/ebiten/blob/main/examples/camera/main.go#L75
 
-	shadowImage.Fill(color.Black)
 	rays := rayCasting(float64(g.px), float64(g.py), g.objects)
 
 	// Subtract ray triangles from shadow
@@ -61,48 +65,44 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		shadowImage.DrawTriangles(v, []uint16{0, 1, 2}, triangleImage, opt)
 	}
 
-	// Draw background
-	screen.DrawImage(bgImage, nil)
-
 	if g.showRays {
 		// Draw rays
 		for _, r := range rays {
-			vector.StrokeLine(screen, float32(r.x1), float32(r.y1), float32(r.x2), float32(r.y2), 1, color.RGBA{255, 255, 0, 150}, true)
+			vector.StrokeLine(g.world, float32(r.x1), float32(r.y1), float32(r.x2), float32(r.y2), 1, color.RGBA{255, 255, 0, 150}, true)
 		}
 	}
 
 	// Draw shadow
 	op := &ebiten.DrawImageOptions{}
 	op.ColorScale.ScaleAlpha(0.7)
-	screen.DrawImage(shadowImage, op)
+	g.world.DrawImage(shadowImage, op)
 
 	// Draw walls
 	for _, obj := range g.objects {
 		for _, w := range obj.walls {
-			vector.StrokeLine(screen, float32(w.x1), float32(w.y1), float32(w.x2), float32(w.y2), 1, color.RGBA{255, 0, 0, 255}, true)
+			vector.StrokeLine(g.world, float32(w.x1), float32(w.y1), float32(w.x2), float32(w.y2), 1, color.RGBA{255, 0, 0, 255}, true)
 		}
 	}
 
 	// Draw player as a rect
-	vector.DrawFilledRect(screen, float32(g.px)-2, float32(g.py)-2, 6, 6, color.Black, true)
-	vector.DrawFilledRect(screen, float32(g.px)-1, float32(g.py)-1, 4, 4, color.RGBA{255, 100, 100, 255}, true)
-
-	if g.showRays {
-		ebitenutil.DebugPrintAt(screen, "R: hide rays", meta.Padding, 0)
-	} else {
-		ebitenutil.DebugPrintAt(screen, "R: show rays", meta.Padding, 0)
-	}
+	vector.DrawFilledRect(g.world, float32(g.px)-2, float32(g.py)-2, 6, 6, color.Black, true)
+	vector.DrawFilledRect(g.world, float32(g.px)-1, float32(g.py)-1, 4, 4, color.RGBA{255, 100, 100, 255}, true)
 
 	g.camera.Render(g.world, screen)
 
-	worldX, worldY := g.camera.ScreenToWorld(ebiten.CursorPosition())
+	if g.showRays {
+		ebitenutil.DebugPrintAt(g.world, "R: hide rays", meta.Padding, 0)
+	} else {
+		ebitenutil.DebugPrintAt(g.world, "R: show rays", meta.Padding, 0)
+	}
+
+	worldX, worldY := g.camera.ScreenToWorld(int(g.px), int(g.py))
 
 	ebitenutil.DebugPrintAt(screen, "WASD: move", 160, 0)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("TPS: %0.2f", ebiten.ActualTPS()), 51, 51)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Rays: 2*%d", len(rays)/2), meta.Padding, 222)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Pos: (%0.0f,%0.0f)", g.px, g.py), meta.Padding, 233)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Cam: (%0.0f,%0.0f)", worldX, worldY), meta.Padding, 244)
-
 
 }
 
@@ -115,7 +115,13 @@ func NewGame(assets embed.FS) *Game {
 		px:     meta.ScreenWidth / 2,
 		py:     meta.ScreenHeight / 2,
 		assets: assets,
-		camera: Camera{ViewPort: f64.Vec2{meta.ScreenWidth, meta.ScreenHeight}},
+		camera: Camera{
+			ViewPort: f64.Vec2{meta.ScreenWidth, meta.ScreenHeight},
+			Position: f64.Vec2{
+				meta.ScreenWidth/2,
+				meta.ScreenHeight/2,
+			},
+		},
 	}
 
 	g.loadLevels()

@@ -14,7 +14,8 @@ const (
 
 	// Experimental camera consts
 	TileXCount  = 25
-	WorldWidth  = ScreenWidth / 4
-	WorldHeight = ScreenWidth / 4
+	WorldWidth  = ScreenWidth
+	WorldHeight = ScreenHeight 
+	WorldRadius = 64
 	WorldSizeX  = WorldWidth / TileSize
 )
