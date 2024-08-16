@@ -3,7 +3,9 @@ package game
 import (
 	"embed"
 	"fmt"
+	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -20,6 +22,7 @@ type Game struct {
 	assets   embed.FS
 	camera   Camera
 	world    *ebiten.Image
+	fov      *ebiten.Image
 	// lc       int // level cursor
 	// levels   []level
 }
@@ -45,11 +48,15 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	g.world.Clear()
 	shadowImage.Fill(color.Black)
-	// Draw background
-	screen.DrawImage(bgImage, nil)
 
+	
 	// potential good link for writing tiles
 	// https://github.com/hajimehoshi/ebiten/blob/main/examples/camera/main.go#L75
+
+	// Draw background
+	screen.Fill(color.Black)
+	screen.DrawImage(bgImage, &ebiten.DrawImageOptions{})
+	screen.DrawImage(fovMask, &ebiten.DrawImageOptions{})
 
 	rays := rayCasting(float64(g.px), float64(g.py), g.objects)
 
@@ -73,9 +80,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	// Draw shadow
-	op := &ebiten.DrawImageOptions{}
-	op.ColorScale.ScaleAlpha(0.7)
-	g.world.DrawImage(shadowImage, op)
+	ox := &ebiten.DrawImageOptions{}
+	ox.ColorScale.ScaleAlpha(0.7)
+	g.world.DrawImage(shadowImage, ox)
 
 	// Draw walls
 	for _, obj := range g.objects {
@@ -83,6 +90,23 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			vector.StrokeLine(g.world, float32(w.x1), float32(w.y1), float32(w.x2), float32(w.y2), 1, color.RGBA{255, 0, 0, 255}, true)
 		}
 	}
+
+	// draw mask
+	fovMask.Fill(color.Black)
+	op := &ebiten.DrawImageOptions{}
+	op.Blend = ebiten.BlendCopy
+
+	// Calculate the position to center the mask on the player
+    maskX := g.camera.Position[0] + meta.ScreenWidth/2 - float64(g.fov.Bounds().Dx())/2
+    maskY := g.camera.Position[1] + meta.ScreenHeight/2 - float64(g.fov.Bounds().Dy())/2
+
+	op.GeoM.Translate(maskX, maskY)
+	fovMask.DrawImage(g.fov, op)
+
+	op = &ebiten.DrawImageOptions{}
+	op.Blend = ebiten.BlendSourceIn
+	
+	fovMask.DrawImage(fgImage, op)
 
 	// Draw player as a rect
 	vector.DrawFilledRect(g.world, float32(g.px)-2, float32(g.py)-2, 6, 6, color.Black, true)
@@ -103,6 +127,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Rays: 2*%d", len(rays)/2), meta.Padding, 222)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Pos: (%0.0f,%0.0f)", g.px, g.py), meta.Padding, 233)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Cam: (%0.0f,%0.0f)", worldX, worldY), meta.Padding, 244)
+	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Mask: (%0.0f,%0.0f)", maskX, maskY), meta.Padding, 255)
+
 
 }
 
@@ -118,11 +144,25 @@ func NewGame(assets embed.FS) *Game {
 		camera: Camera{
 			ViewPort: f64.Vec2{meta.ScreenWidth, meta.ScreenHeight},
 			Position: f64.Vec2{
-				meta.ScreenWidth/2,
-				meta.ScreenHeight/2,
+				meta.ScreenWidth / 2,
+				meta.ScreenHeight / 2,
 			},
 		},
 	}
+
+	alphas := image.Pt(meta.FOV*2, meta.FOV*2)
+	a := image.NewAlpha(image.Rectangle{image.Pt(0, 0), alphas})
+	for j := 0; j < alphas.Y; j++ {
+		for i := 0; i < alphas.X; i++ {
+			// d is the distance between (i, j) and the (circle) center.
+			d := math.Sqrt(float64((i-meta.FOV)*(i-meta.FOV) + (j-meta.FOV)*(j-meta.FOV)))
+			// Alphas around the center are 0 and values outside of the circle are 0xff.
+			b := uint8(max(0, min(0xff, int(3*d*0xff/meta.FOV)-2*0xff)))
+			a.SetAlpha(i, j, color.Alpha{b})
+		}
+	}
+
+	g.fov = ebiten.NewImageFromImage(a)
 
 	g.loadLevels()
 
@@ -143,5 +183,6 @@ func NewGame(assets embed.FS) *Game {
 
 func init() {
 	bgImage.Fill(color.RGBA{0, 0, 139, 255})
+	fgImage.Fill(color.Black)
 	triangleImage.Fill(color.White)
 }
