@@ -22,7 +22,6 @@ type Game struct {
 	assets   embed.FS
 	camera   Camera
 	world    *ebiten.Image
-	fov      *ebiten.Image
 	// lc       int // level cursor
 	// levels   []level
 }
@@ -56,7 +55,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Draw background
 	screen.Fill(color.Black)
 	screen.DrawImage(bgImage, &ebiten.DrawImageOptions{})
-	screen.DrawImage(fovMask, &ebiten.DrawImageOptions{})
 
 	rays := rayCasting(float64(g.px), float64(g.py), g.objects)
 
@@ -91,22 +89,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	// draw mask
-	fovMask.Fill(color.Black)
-	op := &ebiten.DrawImageOptions{}
-	op.Blend = ebiten.BlendCopy
-
-	// Calculate the position to center the mask on the player
-    maskX := g.camera.Position[0] + meta.ScreenWidth/2 - float64(g.fov.Bounds().Dx())/2
-    maskY := g.camera.Position[1] + meta.ScreenHeight/2 - float64(g.fov.Bounds().Dy())/2
-
-	op.GeoM.Translate(maskX, maskY)
-	fovMask.DrawImage(g.fov, op)
-
-	op = &ebiten.DrawImageOptions{}
-	op.Blend = ebiten.BlendSourceIn
 	
-	fovMask.DrawImage(fgImage, op)
 
 	// Draw player as a rect
 	vector.DrawFilledRect(g.world, float32(g.px)-2, float32(g.py)-2, 6, 6, color.Black, true)
@@ -127,7 +110,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Rays: 2*%d", len(rays)/2), meta.Padding, 222)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Pos: (%0.0f,%0.0f)", g.px, g.py), meta.Padding, 233)
 	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Cam: (%0.0f,%0.0f)", worldX, worldY), meta.Padding, 244)
-	ebitenutil.DebugPrintAt(screen, fmt.Sprintf("Mask: (%0.0f,%0.0f)", maskX, maskY), meta.Padding, 255)
 
 
 }
@@ -162,7 +144,6 @@ func NewGame(assets embed.FS) *Game {
 		}
 	}
 
-	g.fov = ebiten.NewImageFromImage(a)
 
 	g.loadLevels()
 
@@ -183,6 +164,5 @@ func NewGame(assets embed.FS) *Game {
 
 func init() {
 	bgImage.Fill(color.RGBA{0, 0, 139, 255})
-	fgImage.Fill(color.Black)
 	triangleImage.Fill(color.White)
 }
